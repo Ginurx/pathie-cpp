@@ -35,7 +35,7 @@
 #include <ext/stdio_filebuf.h>
 #endif
 
-#include "path.hpp"
+#include "pathie/path.hpp"
 
 namespace Pathie {
 

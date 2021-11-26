@@ -37,7 +37,7 @@
 #include <fstream>
 #endif
 
-#include "path.hpp"
+#include "pathie/path.hpp"
 
 namespace Pathie {
 

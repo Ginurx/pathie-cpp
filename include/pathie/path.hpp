@@ -34,8 +34,8 @@
 #include <vector>
 #include <sys/stat.h>
 
-#include "pathie.hpp"
-#include "entry_iterator.hpp"
+#include "pathie/pathie.hpp"
+#include "pathie/entry_iterator.hpp"
 
 namespace Pathie {
 

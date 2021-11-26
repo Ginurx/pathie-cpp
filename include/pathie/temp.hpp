@@ -1,6 +1,6 @@
 #ifndef PATHIE_TEMPDIR_HPP
 #define PATHIE_TEMPDIR_HPP
-#include "path.hpp"
+#include "pathie/path.hpp"
 
 namespace Pathie {
 
