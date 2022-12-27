@@ -1,0 +1,16 @@
+Source: libpathie-cpp
+Section: x11
+Priority: extra
+Maintainer: Sander <code@kroket.io>
+Build-Depends: debhelper (>= 10),
+    cmake,
+Homepage: https://github.com/maemo-leste-upstream-forks/pathie-cpp
+XSBC-Bugtracker: https://github.com/maemo-leste-upstream-forks/pathie-cpp/issues
+Vcs-Git: https://github.com/maemo-leste-upstream-forks/pathie-cpp/
+Vcs-Browser: https://github.com/maemo-leste-upstream-forks/pathie-cpp/
+
+
+Package: libpathie-cpp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Small C++ library for cross-platform Unicode path management
