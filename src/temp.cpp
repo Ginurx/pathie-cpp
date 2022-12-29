@@ -1,4 +1,4 @@
-#include "../include/pathie/temp.hpp"
+#include "pathie/temp.hpp"
 #include <sstream>
 #include <cstdlib>
 #include <cstring>

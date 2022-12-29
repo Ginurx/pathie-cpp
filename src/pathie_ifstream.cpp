@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "../include/pathie/pathie_ifstream.hpp"
+#include "pathie/pathie_ifstream.hpp"
 
 #include <cstdlib>
 

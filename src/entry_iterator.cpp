@@ -27,9 +27,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "../include/pathie/entry_iterator.hpp"
-#include "../include/pathie/path.hpp"
-#include "../include/pathie/errors.hpp"
+#include "pathie/entry_iterator.hpp"
+#include "pathie/path.hpp"
+#include "pathie/errors.hpp"
 
 #if defined(__unix__) || defined(__APPLE__)
 #include <sys/types.h>

@@ -26,26 +26,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.16)
 enable_language(CXX)
-project(Pathie)
+project(Pathie VERSION 0.1.2)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-########################################
-# Version number
+include(GNUInstallDirs)  # initializes ${CMAKE_INSTALL_*DIR} to sane defaults
+include(CMakePackageConfigHelpers)
 
-set(PATHIE_VERSION_MAJOR 0)
-set(PATHIE_VERSION_MINOR 1)
-set(PATHIE_VERSION_PATCH 1)
-
-execute_process(COMMAND git rev-parse --short HEAD
-  WORKING_DIRECTORY ${Pathie_SOURCE_DIR}
-  OUTPUT_VARIABLE PATHIE_VERSION_GIT
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-# If git was not available, unset empty variable
-if (NOT(PATHIE_VERSION_GIT))
-  unset(PATHIE_VERSION_GIT)
-endif()
+unset(PATHIE_VERSION_GIT)
 
 ########################################
 # Flags & Options
@@ -77,12 +66,9 @@ elseif(UNIX)
   add_definitions("-D_POSIX_C_SOURCE=200112L")
 endif()
 
-add_definitions("-DPATHIE_VERSION_MAJOR=${PATHIE_VERSION_MAJOR}")
-add_definitions("-DPATHIE_VERSION_MINOR=${PATHIE_VERSION_MINOR}")
-add_definitions("-DPATHIE_VERSION_PATCH=${PATHIE_VERSION_PATCH}")
-if (PATHIE_VERSION_GIT)
-  add_definitions("-DPATHIE_VERSION_GIT=\"${PATHIE_VERSION_GIT}\"")
-endif()
+add_definitions("-DPATHIE_VERSION_MAJOR=${CMAKE_PROJECT_VERSION_MAJOR}")
+add_definitions("-DPATHIE_VERSION_MINOR=${CMAKE_PROJECT_VERSION_MINOR}")
+add_definitions("-DPATHIE_VERSION_PATCH=${CMAKE_PROJECT_VERSION_PATCH}")
 
 if (PATHIE_ASSUME_UTF8_ON_UNIX)
   add_definitions("-DPATHIE_ASSUME_UTF8_ON_UNIX=1")
@@ -126,18 +112,6 @@ if(APPLE)
   target_link_libraries(pathie iconv)
 endif()
 
-if (CMAKE_BUILD_SHARED_LIBS)
-  add_library(pathie-dynamic SHARED ${pathie_sources})
-  set_target_properties(pathie-dynamic PROPERTIES
-          VERSION "${PATHIE_VERSION_MAJOR}.${PATHIE_VERSION_MINOR}.${PATHIE_VERSION_PATCH}"
-          SOVERSION "${PATHIE_VERSION_MAJOR}"
-          OUTPUT_NAME pathie-cpp
-          )
-  if(APPLE)
-    target_link_libraries(pathie-dynamic iconv)
-  endif()
-endif()
-
 if(WIN32)
   target_link_libraries(pathie shlwapi)
 
@@ -161,34 +135,64 @@ endif()
 ########################################
 # Installation information
 
+target_include_directories(pathie
+        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        )
+
 install(TARGETS pathie
-  DESTINATION lib)
+        EXPORT pathieTargets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        )
 
-if (CMAKE_BUILD_SHARED_LIBS)
-  install(TARGETS pathie-dynamic
-    DESTINATION lib)
-endif()
-
-install(FILES
-  "include/pathie/errors.hpp"
-  "include/pathie/entry_iterator.hpp"
-  "include/pathie/path.hpp"
-  "include/pathie/temp.hpp"
-  "include/pathie/pathie.hpp"
-  DESTINATION include/pathie)
+list(APPEND HDRS
+        "include/pathie/errors.hpp"
+        "include/pathie/entry_iterator.hpp"
+        "include/pathie/path.hpp"
+        "include/pathie/temp.hpp"
+        "include/pathie/pathie.hpp")
 
 if (PATHIE_BUILD_STREAM_REPLACEMENTS)
-  install(FILES
-    "include/pathie/pathie_ifstream.hpp"
-    "include/pathie/pathie_ofstream.hpp"
-    DESTINATION include/pathie)
+  list(APPEND HDRS
+          "include/pathie/pathie_ifstream.hpp"
+          "include/pathie/pathie_ofstream.hpp")
 endif()
+
+install(FILES ${HDRS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/pathie")
+
+file(COPY ${HDRS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/pathie)
+
+install(EXPORT pathieTargets
+        FILE pathieTargets.cmake
+        NAMESPACE pathie::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pathie
+        )
+
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+        "${CMAKE_CURRENT_BINARY_DIR}/pathieConfig.cmake"
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pathie
+        )
+
+write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/pathieConfigVersion.cmake"
+        VERSION "${CMAKE_PROJECT_VERSION}"
+        COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/pathieConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/pathieConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pathie
+        )
 
 ########################################
 # Status message
 
 message(STATUS "--------------- Build info summary ----------------")
-message(STATUS "Pathie version:     ${PATHIE_VERSION_MAJOR}.${PATHIE_VERSION_MINOR}.${PATHIE_VERSION_PATCH}")
+message(STATUS "Pathie version:     ${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}.${CMAKE_PROJECT_VERSION_PATCH}")
 message(STATUS "Build type:         ${CMAKE_BUILD_TYPE}")
 message(STATUS "Install prefix:     ${CMAKE_INSTALL_PREFIX}")
 if (CMAKE_CROSSCOMPILING)

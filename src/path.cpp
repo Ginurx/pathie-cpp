@@ -27,9 +27,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "../include/pathie/path.hpp"
-#include "../include/pathie/pathie.hpp"
-#include "../include/pathie/errors.hpp"
+#include "pathie/path.hpp"
+#include "pathie/pathie.hpp"
+#include "pathie/errors.hpp"
 
 #include <cstdlib>
 #include <cstdio>
