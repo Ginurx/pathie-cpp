@@ -27,8 +27,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required(VERSION 3.16)
-enable_language(CXX)
-project(Pathie VERSION 0.1.2)
+set(CMAKE_CXX_STANDARD 17)
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release")
+endif()
+
+project(Pathie VERSION 0.1.3 LANGUAGES CXX)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(GNUInstallDirs)  # initializes ${CMAKE_INSTALL_*DIR} to sane defaults
