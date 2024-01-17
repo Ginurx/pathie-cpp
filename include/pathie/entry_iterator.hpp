@@ -109,6 +109,7 @@ namespace Pathie {
   private:
     void open_native_handle();
     void close_native_handle();
+    const Path& get_cur_path() const;
 
     const Path* mp_directory; ///< Path requested to read from.
     void* mp_cur; ///< Native handle to the opened directory.

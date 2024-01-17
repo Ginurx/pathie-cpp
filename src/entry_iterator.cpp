@@ -44,6 +44,8 @@
 
 using namespace Pathie;
 
+static const Path s_pathdefault;
+
 /**
  * The default constructor always constructs the terminal
  * iterator, i.e. the one you want to test for if you want
@@ -52,7 +54,7 @@ using namespace Pathie;
 entry_iterator::entry_iterator()
   : mp_directory(NULL),
     mp_cur(NULL),
-    mp_cur_path(new Path())
+    mp_cur_path(NULL)
 {
 }
 
@@ -62,7 +64,7 @@ entry_iterator::entry_iterator()
 entry_iterator::entry_iterator(const Path* p_directory)
   : mp_directory(p_directory),
     mp_cur(NULL),
-    mp_cur_path(new Path())
+    mp_cur_path(NULL)
 {
   open_native_handle();
 }
@@ -75,7 +77,10 @@ entry_iterator::~entry_iterator()
   close_native_handle();
 
   if (mp_cur_path)
+  {
     delete mp_cur_path;
+    mp_cur_path = NULL;
+  }
 
   // `mp_directory' is NOT deleted, because this class does not own it!
 }
@@ -86,13 +91,15 @@ entry_iterator::~entry_iterator()
  */
 void entry_iterator::open_native_handle()
 {
+  Path cur_path;
+
 #if defined(_PATHIE_UNIX)
   std::string nstr = mp_directory->native();
   mp_cur = opendir(nstr.c_str());
 
   if (mp_cur) {
     struct dirent* p_dirent = readdir(static_cast<DIR*>(mp_cur));
-    *mp_cur_path = filename_to_utf8(p_dirent->d_name);
+    cur_path = filename_to_utf8(p_dirent->d_name);
   }
   else {
     throw(Pathie::ErrnoError(errno));
@@ -108,11 +115,16 @@ void entry_iterator::open_native_handle()
     throw(Pathie::WindowsError(err));
   }
   else {
-    *mp_cur_path = utf16_to_utf8(finddata.cFileName);
+    cur_path = utf16_to_utf8(finddata.cFileName);
   }
 #else
 #error Unsupported system
 #endif
+  
+  if (mp_cur_path == NULL)
+    mp_cur_path = new Path(cur_path);
+  else
+    *mp_cur_path = cur_path;
 }
 
 /// Helper function for closing the native handle.
@@ -128,8 +140,22 @@ void entry_iterator::close_native_handle()
 #endif
 
   // Reset member variables
-  *mp_cur_path = Path();
+  if (mp_cur_path)
+  {
+    delete mp_cur_path;
+    mp_cur_path = NULL; 
+  }
+  
   mp_cur = NULL;
+}
+
+// get current path with default path if mp_cur_path is NULL
+const Path& entry_iterator::get_cur_path() const
+{
+  if (mp_cur_path == NULL)
+    return s_pathdefault;
+  else
+    return *mp_cur_path;
 }
 
 /**
@@ -187,7 +213,7 @@ entry_iterator& entry_iterator::operator++()
  */
 const Path& entry_iterator::operator*() const
 {
-  return *mp_cur_path;
+  return get_cur_path();
 }
 
 /**
@@ -247,7 +273,7 @@ bool entry_iterator::operator!=(const entry_iterator& other) const
  */
 const Path* entry_iterator::operator->() const
 {
-  return mp_cur_path;
+  return &get_cur_path();
 }
 
 /// "Copy" constructor -- see class docs for more info.
@@ -259,7 +285,7 @@ entry_iterator::entry_iterator(const entry_iterator& other)
   entry_iterator& e = const_cast<entry_iterator&>(other);
   e.mp_directory    = NULL;
   e.mp_cur          = NULL;
-  e.mp_cur_path     = new Path();
+  e.mp_cur_path     = NULL;
 }
 
 /// "Copy" assignment -- see class docs for more info.
@@ -267,12 +293,12 @@ entry_iterator& entry_iterator::operator=(const entry_iterator& other)
 {
   mp_directory      = other.mp_directory;
   mp_cur            = other.mp_cur;
-  mp_cur_path       = other.mp_cur_path;
+  mp_cur_path       = other.mp_cur_path;      // transfer the ownership of this pointer
 
   entry_iterator& e = const_cast<entry_iterator&>(other);
   e.mp_directory    = NULL;
   e.mp_cur          = NULL;
-  e.mp_cur_path     = new Path();
+  e.mp_cur_path     = NULL;
 
   return *this;
 }
