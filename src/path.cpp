@@ -384,15 +384,19 @@ std::string Path::extension() const
   else if (m_path == "..")
     return "";
 
+  std::string bname;
+
   size_t pos = 0;
-  if ((pos = m_path.rfind(".")) != string::npos) { // assignment intended
-    if (pos == 0 || pos == m_path.length() - 1) // .foo and foo.
+  if ((pos = m_path.rfind("/")) != string::npos) // Single = intended
+    bname = m_path.substr(pos + 1);
+  else
+    bname = m_path;
+
+  if ((pos = bname.rfind(".")) != string::npos) { // assignment intended
+    if (pos == 0 || pos == bname.length() - 1) // .foo and foo.
       return "";
     else {
-      if (m_path[pos - 1] == '/') // foo/.txt
-	return "";
-      else
-	return m_path.substr(pos);
+	  return bname.substr(pos);
     }
   }
   else
@@ -3393,7 +3397,7 @@ Path Path::sub_ext(std::string new_extension) const
     return Path(m_path + new_extension);
   }
   else {
-    size_t pos = m_path.find(old_extension);
+    size_t pos = m_path.rfind(old_extension);
     return Path(m_path.substr(0, pos) + new_extension);
   }
 }
